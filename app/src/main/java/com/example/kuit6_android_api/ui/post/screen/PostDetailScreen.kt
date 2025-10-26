@@ -1,5 +1,6 @@
 package com.example.kuit6_android_api.ui.post.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -75,7 +76,7 @@ fun PostDetailScreen(
                     IconButton(onClick = { onEditClick(postId) }) {
                         Icon(Icons.Default.Edit, contentDescription = "수정")
                     }
-                    IconButton(onClick = { showDeleteDialog = true }) {
+                    IconButton(onClick = {showDeleteDialog = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "삭제")
                     }
                 }

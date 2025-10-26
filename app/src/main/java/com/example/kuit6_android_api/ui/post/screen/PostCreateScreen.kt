@@ -189,6 +189,7 @@ fun PostCreateScreen(
                 onClick = {
                     val finalAuthor = author.ifBlank { "anonymous" }
                     viewModel.createPost(finalAuthor, title, content, null) {
+                        //viewModel.uploadedImageUrl 를 imageUrl 자리에 넣기
                         onPostCreated()
                     }
                 },

@@ -23,7 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kuit6_android_api.ui.post.component.PostItem
 import com.example.kuit6_android_api.ui.post.viewmodel.PostViewModel
-
+import com.example.kuit6_android_api.data.model.response.AuthorResponse
+import com.example.kuit6_android_api.data.model.response.PostResponse
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostListScreen(
@@ -33,6 +34,7 @@ fun PostListScreen(
 ) {
     val posts = viewModel.posts
 
+    // 화면이 리컴포즈될 때마다 getPost 실행
     LaunchedEffect(Unit) {
         viewModel.getPosts()
     }
