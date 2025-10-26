@@ -1,5 +1,8 @@
 package com.example.kuit6_android_api.ui.post.viewmodel
 
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +14,11 @@ import com.example.kuit6_android_api.data.model.request.PostCreateRequest
 import com.example.kuit6_android_api.data.model.response.PostResponse
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
+import java.io.FileOutputStream
 
 class PostViewModel : ViewModel() {
 
@@ -23,6 +31,9 @@ class PostViewModel : ViewModel() {
         private set
 
     var uploadedImageUrl by mutableStateOf<String?>(null)
+        private set
+
+    var isUploading by mutableStateOf(false)
         private set
 
     private val apiService = RetrofitClient.apiService
@@ -57,7 +68,8 @@ class PostViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             runCatching {
-                val request = PostCreateRequest(title, content, imageUrl)
+                val finalImageUrl = imageUrl ?: uploadedImageUrl
+                val request = PostCreateRequest(title, content, finalImageUrl)
                 apiService.createPost(author, request)
             }.onSuccess { response ->
                 if (response.success) {
@@ -78,7 +90,8 @@ class PostViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             runCatching {
-                val request = PostCreateRequest(title, content, imageUrl)
+                val finalImageUrl = imageUrl ?: uploadedImageUrl
+                val request = PostCreateRequest(title, content, finalImageUrl)
                 apiService.updatePost(postId, request)
             }.onSuccess { response ->
                 if(response.success && response.data != null){
@@ -108,6 +121,71 @@ class PostViewModel : ViewModel() {
         }
     }
 
+    private fun uriToFile(context: Context, uri: Uri): File? {
+        return try {
+            val contentResolver = context.contentResolver
+            val fileName = getFileName(context, uri) ?: "image_${System.currentTimeMillis()}.jpg"
+            val tempFile = File(context.cacheDir, fileName)
+
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(tempFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    // URI로부터 파일 이름 가져오기
+    private fun getFileName(context: Context, uri: Uri): String? {
+        var fileName: String? = null
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (nameIndex != -1) {
+                    fileName = it.getString(nameIndex)
+                }
+            }
+        }
+        return fileName
+    }
+
+    fun uploadImage(
+        context: Context, uri: Uri,
+        onSuccess: (String) -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            isUploading = true
+            runCatching {
+                val file = uriToFile(context, uri)
+                if (file == null) {
+                    throw Exception("파일 변환 실패")
+                }
+
+                val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+
+                apiService.uploadImage(body)
+            }.onSuccess { response ->
+                isUploading = false
+                if (response.success && response.data != null) {
+                    val imageUrl = response.data["imageUrl"]
+                    if (imageUrl != null) {
+                        uploadedImageUrl = imageUrl
+                        onSuccess(imageUrl)
+                    }
+                }
+            }.onFailure { error ->
+                isUploading = false
+                onError(error.message ?: "업로드 실패")
+            }
+        }
+    }
     fun clearUploadedImageUrl() {
         uploadedImageUrl = null
     }

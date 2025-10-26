@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -55,7 +56,7 @@ fun PostEditScreen(
     viewModel: PostViewModel = viewModel()
 ) {
     val post = viewModel.postDetail
-
+    val context = LocalContext.current
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -64,7 +65,15 @@ fun PostEditScreen(
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        selectedImageUri = uri
+        uri?.let {
+            selectedImageUri = it
+            viewModel.uploadImage(
+                context = context,
+                uri = it,
+                onSuccess = { /* 업로드 성공 시 uploadedImageUrl 갱신됨 */ },
+                onError = { /* 에러 처리 */ }
+            )
+        }
     }
 
     LaunchedEffect(postId) {
@@ -78,6 +87,8 @@ fun PostEditScreen(
             isLoaded = true
         }
     }
+
+    val imageUrl = viewModel.uploadedImageUrl ?: post?.imageUrl
 
     Scaffold(
         topBar = {
@@ -202,7 +213,7 @@ fun PostEditScreen(
 
                 Button(
                     onClick = {
-                        viewModel.updatePost(postId, title, content, null) {
+                        viewModel.updatePost(postId, title, content, imageUrl) {
                             onPostUpdated()
                         }
                     },
