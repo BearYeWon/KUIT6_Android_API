@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -13,12 +12,12 @@ import com.example.kuit6_android_api.data.api.RetrofitClient
 import com.example.kuit6_android_api.data.model.request.PostCreateRequest
 import com.example.kuit6_android_api.data.model.response.PostResponse
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
+import java.time.LocalDateTime
 
 class PostViewModel : ViewModel() {
 
@@ -81,6 +80,7 @@ class PostViewModel : ViewModel() {
         }
     }
 
+    // 게시물 수정 시 호출
     fun updatePost(
         postId: Long,
         title: String,
@@ -90,21 +90,25 @@ class PostViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             runCatching {
-                val finalImageUrl = imageUrl ?: uploadedImageUrl
+                val finalImageUrl = imageUrl ?: uploadedImageUrl // imageUrl이 없으면 uploadImage()에서 정해진 uploadedImageUrl 가져옴
+                // 요청 body로 보낼 DTO 인스턴스 만들기
                 val request = PostCreateRequest(title, content, finalImageUrl)
                 apiService.updatePost(postId, request)
             }.onSuccess { response ->
                 if(response.success && response.data != null){
+                    // 변경된 새 리스트를 posts에 대입
                     posts = posts.map{
+                        // 순회 중인 원소의 id == postId면 갱신된 객체 response.data로 교체
                         if(it.id == postId) response.data else it
                     }
-                    postDetail = response.data
+                    postDetail = response.data // postDetail을 갱신된 객체로 바꾸기
                     onSuccess()
                 }
             }
         }
     }
 
+    // 삭제 시 호출
     fun deletePost(
         postId: Long,
         onSuccess: () -> Unit = {}
@@ -154,20 +158,24 @@ class PostViewModel : ViewModel() {
         return fileName
     }
 
+    // 이미지 업로드 시 호출
     fun uploadImage(
-        context: Context, uri: Uri,
+        context: Context,
+        uri: Uri,
         onSuccess: (String) -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
         viewModelScope.launch {
             isUploading = true
             runCatching {
-                val file = uriToFile(context, uri)
+                val file = uriToFile(context, uri) // uri를 실제 파일로 변환
                 if (file == null) {
                     throw Exception("파일 변환 실패")
                 }
 
+                // 파일 내용을 RequestBody로 감쌈
                 val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                // Part 생성
                 val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
 
                 apiService.uploadImage(body)
@@ -186,8 +194,14 @@ class PostViewModel : ViewModel() {
             }
         }
     }
+
+    //이미지 삭제 버튼 누를 시 호출
     fun clearUploadedImageUrl() {
         uploadedImageUrl = null
+    }
+
+    fun clearPostImage() {
+        postDetail = postDetail?.copy(imageUrl = null)
     }
 
     private fun getCurrentDateTime(): String {
