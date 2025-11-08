@@ -17,9 +17,6 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 
 class PostViewModel : ViewModel() {
-    var posts by mutableStateOf<List<PostResponse>>(emptyList())
-        private set
-
     var postDetail by mutableStateOf<PostResponse?>(null)
         private set
 
@@ -30,22 +27,6 @@ class PostViewModel : ViewModel() {
         private set
 
     private val apiService = RetrofitClient.apiService
-
-    fun getPosts() {
-        viewModelScope.launch {
-            runCatching {
-                apiService.getPosts()
-            }.onSuccess { response ->
-                response.data?.let {
-                    if (response.success) {
-                        posts = response.data
-                    }
-                }
-            }.onFailure { error ->
-                Log.e("getPost", error.message.toString())
-            }
-        }
-    }
 
     fun getPostDetail(postId: Long) {
         viewModelScope.launch {
