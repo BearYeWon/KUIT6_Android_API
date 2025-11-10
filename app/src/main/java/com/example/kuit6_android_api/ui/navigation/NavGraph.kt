@@ -10,8 +10,9 @@ import com.example.kuit6_android_api.ui.post.screen.PostCreateScreen
 import com.example.kuit6_android_api.ui.post.screen.PostDetailScreen
 import com.example.kuit6_android_api.ui.post.screen.PostEditScreen
 import com.example.kuit6_android_api.ui.post.screen.PostListScreen
+import com.example.kuit6_android_api.ui.post.viewmodel.PostCreateViewModel
+import com.example.kuit6_android_api.ui.post.viewmodel.PostDetailViewModel
 import com.example.kuit6_android_api.ui.post.viewmodel.PostListViewModel
-import com.example.kuit6_android_api.ui.post.viewmodel.PostViewModel
 import com.example.kuit6_android_api.ui.post.viewmodel.postViewModelFactory
 
 @Composable
@@ -46,7 +47,12 @@ fun NavGraph(
                 },
                 onEditClick = { postId ->
                     navController.navigate(PostEditRoute(postId))
-                }
+                },
+                viewModel = viewModel(factory = postViewModelFactory {
+                    PostDetailViewModel(
+                        postRepository = it
+                    )
+                })
             )
         }
 
@@ -57,7 +63,12 @@ fun NavGraph(
                 },
                 onPostCreated = {
                     navController.popBackStack()
-                }
+                },
+                viewModel = viewModel(factory = postViewModelFactory {
+                    PostCreateViewModel(
+                        postRepository = it
+                    )
+                })
             )
         }
 
@@ -76,3 +87,4 @@ fun NavGraph(
         }
     }
 }
+

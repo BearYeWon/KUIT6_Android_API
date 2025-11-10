@@ -86,20 +86,6 @@ class PostViewModel : ViewModel() {
         }
     }
 
-    fun deletePost(postId: Long, onSuccess: () -> Unit = {}) {
-        viewModelScope.launch {
-            runCatching {
-                apiService.deletePost(postId)
-            }.onSuccess { response ->
-                if (response.success) {
-                    onSuccess()
-                }
-            }.onFailure { error ->
-
-            }
-        }
-    }
-
     fun clearUploadedImageUrl() {
         uploadedImageUrl = null
     }

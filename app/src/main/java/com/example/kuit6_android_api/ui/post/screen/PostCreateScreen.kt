@@ -1,6 +1,7 @@
 package com.example.kuit6_android_api.ui.post.screen
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -37,6 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,36 +54,65 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.kuit6_android_api.data.model.request.PostCreateRequest
+import com.example.kuit6_android_api.ui.post.state.UploadImageUiState
+import com.example.kuit6_android_api.ui.post.viewmodel.PostCreateViewModel
 import com.example.kuit6_android_api.ui.post.viewmodel.PostViewModel
+import com.example.kuit6_android_api.ui.post.viewmodel.UriUtils
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostCreateScreen(
     onNavigateBack: () -> Unit,
     onPostCreated: () -> Unit,
-    viewModel: PostViewModel = viewModel()
+    viewModel: PostCreateViewModel
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+    val imgUiState by viewModel.uploadImageUiState.collectAsState()
     val context = LocalContext.current
+
     var author by remember { mutableStateOf("") }
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var uploadedImageUrl by remember { mutableStateOf<String?>(null) }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
             selectedImageUri = it
-            viewModel.uploadImage(
-                context = context,
-                uri = it,
-                onSuccess = { imageUrl ->
-                    // 업로드 성공
-                },
-                onError = { error ->
-                    // 에러 처리
-                }
-            )
+
+            // Uri → MultipartBody.Part 변환
+            val file = UriUtils.uriToFile(context, it)
+            if (file != null) {
+                val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+                viewModel.uploadImage(body)
+            }
+        }
+    }
+
+    LaunchedEffect(imgUiState) {
+        when (imgUiState) {
+            is UploadImageUiState.Success -> {
+                uploadedImageUrl = (imgUiState as UploadImageUiState.Success).imgUrl["imageUrl"]
+            }
+
+            is UploadImageUiState.Error -> {
+                Toast
+                    .makeText(
+                        context,
+                        (imgUiState as UploadImageUiState.Error).message,
+                        Toast.LENGTH_SHORT
+                    )
+                    .show()
+            }
+
+            else -> Unit
         }
     }
 
@@ -192,7 +224,7 @@ fun PostCreateScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
 
-                        if (selectedImageUri == null && !viewModel.isUploading) {
+                        if (selectedImageUri == null && imgUiState !is UploadImageUiState.Loading) {
                             FilledTonalButton(
                                 onClick = { imagePickerLauncher.launch("image/*") },
                                 shape = RoundedCornerShape(10.dp)
@@ -203,7 +235,7 @@ fun PostCreateScreen(
                     }
 
                     // 업로드 중 표시
-                    if (viewModel.isUploading) {
+                    if (imgUiState is UploadImageUiState.Loading) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -224,7 +256,7 @@ fun PostCreateScreen(
                     }
 
                     // 업로드된 이미지 미리보기
-                    if (selectedImageUri != null && !viewModel.isUploading) {
+                    if (selectedImageUri != null && imgUiState !is UploadImageUiState.Loading) {
                         Spacer(modifier = Modifier.height(12.dp))
                         Box(
                             modifier = Modifier.fillMaxWidth()
@@ -264,14 +296,18 @@ fun PostCreateScreen(
             Button(
                 onClick = {
                     val finalAuthor = author
-                    viewModel.createPost(finalAuthor, title, content, viewModel.uploadedImageUrl) {
-                        onPostCreated()
-                    }
+                    val request = PostCreateRequest(
+                        title = title,
+                        content = content,
+                        imageUrl = uploadedImageUrl
+                    )
+                    viewModel.createPost(finalAuthor, request)
+                    onPostCreated()
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                enabled = title.isNotBlank() && content.isNotBlank() && !viewModel.isUploading,
+                enabled = title.isNotBlank() && content.isNotBlank() && imgUiState !is UploadImageUiState.Loading,
                 shape = RoundedCornerShape(16.dp),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 4.dp,
@@ -293,16 +329,5 @@ fun PostCreateScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PostCreateScreenPreview() {
-    MaterialTheme {
-        PostCreateScreen(
-            onNavigateBack = {},
-            onPostCreated = {}
-        )
     }
 }
