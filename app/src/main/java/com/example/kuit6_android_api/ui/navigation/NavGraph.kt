@@ -63,6 +63,9 @@ fun NavGraph(
                     navController.popBackStack()
                 },
                 onPostCreated = {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refreshNeeded", true)
                     navController.popBackStack()
                 },
                 viewModel = viewModel(factory = postViewModelFactory {
@@ -82,6 +85,9 @@ fun NavGraph(
                     navController.popBackStack()
                 },
                 onPostUpdated = {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refreshNeeded", true)
                     navController.popBackStack()
                 },
                 viewModel = viewModel(factory = postViewModelFactory {

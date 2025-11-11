@@ -18,15 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.kuit6_android_api.ui.post.component.PostItem
 import com.example.kuit6_android_api.ui.post.state.PostListUiState
 import com.example.kuit6_android_api.ui.post.viewmodel.PostListViewModel
@@ -39,8 +34,6 @@ fun PostListScreen(
     viewModel: PostListViewModel
 ) {
     val uiState by viewModel.postListUiState.collectAsState()
-
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     Scaffold(
         topBar = {

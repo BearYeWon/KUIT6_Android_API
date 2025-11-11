@@ -50,7 +50,6 @@ import coil.compose.AsyncImage
 import com.example.kuit6_android_api.ui.post.state.DeletePostUiState
 import com.example.kuit6_android_api.ui.post.state.PostDetailUiState
 import com.example.kuit6_android_api.ui.post.viewmodel.PostDetailViewModel
-import com.example.kuit6_android_api.ui.post.viewmodel.PostViewModel
 import com.example.kuit6_android_api.util.formatDateTime
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -53,11 +53,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.kuit6_android_api.data.model.request.PostCreateRequest
 import com.example.kuit6_android_api.ui.post.state.UploadImageUiState
 import com.example.kuit6_android_api.ui.post.viewmodel.PostCreateViewModel
-import com.example.kuit6_android_api.ui.post.viewmodel.PostViewModel
 import com.example.kuit6_android_api.ui.post.viewmodel.UriUtils
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
