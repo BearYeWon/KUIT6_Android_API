@@ -9,10 +9,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class PostListViewModel (
-    private val postRepository : PostRepository
+class PostListViewModel(
+    private val postRepository: PostRepository
 ) : ViewModel() {
-    private val _PostList_uiState = MutableStateFlow<PostListUiState>(PostListUiState.Loading) // 변경 가능 상태
+    private val _PostList_uiState =
+        MutableStateFlow<PostListUiState>(PostListUiState.Loading) // 변경 가능 상태
     val postListUiState: StateFlow<PostListUiState> = _PostList_uiState.asStateFlow() // 읽기 전용
 
     init {
@@ -24,13 +25,12 @@ class PostListViewModel (
             _PostList_uiState.value = PostListUiState.Loading
 
             postRepository.getPosts()
-                .onSuccess { posts->
+                .onSuccess { posts ->
                     _PostList_uiState.value = PostListUiState.Success(posts)
                 }
-                .onFailure { error->
-                    _PostList_uiState.value = PostListUiState.Error(
-                        error.message ?: "error"
-                    )
+                .onFailure { error ->
+                    _PostList_uiState.value =
+                        PostListUiState.Error(error.message ?: "error")
                 }
         }
     }

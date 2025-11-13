@@ -32,7 +32,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -49,10 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.kuit6_android_api.data.model.request.PostCreateRequest
 import com.example.kuit6_android_api.ui.post.state.PostEditUiState
@@ -71,8 +67,10 @@ fun PostEditScreen(
     onPostUpdated: () -> Unit,
     viewModel: PostEditViewModel
 ) {
+    // PostEditUiState, UploadImageUiState 상태 구독
     val uiState by viewModel.uiState.collectAsState()
     val imgUiState by viewModel.uploadImageUiState.collectAsState()
+
     val context = LocalContext.current
 
     var title by remember { mutableStateOf("") }
@@ -81,6 +79,7 @@ fun PostEditScreen(
     var uploadedImageUrl by remember { mutableStateOf<String?>(null) }
     var isLoaded by remember { mutableStateOf(false) }
 
+    // 이미지 업로드
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -91,21 +90,23 @@ fun PostEditScreen(
             if (file != null) {
                 val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
                 val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+                // file을 인자로해서 viewModel의 uploadImage 호출
                 viewModel.uploadImage(body)
             }
         }
     }
 
+    // 이미 존재하는 게시글 내용 불러오기: PostEditViewModel의 getPostDetail() 호출
     LaunchedEffect(postId) {
         viewModel.getPostDetail(postId)
     }
 
+    // imagUiState가 변할 때마다 성공 시 uploadedImageUrl 변경, 실패 시 토스트
     LaunchedEffect(imgUiState) {
         when (imgUiState) {
             is UploadImageUiState.Success -> {
                 uploadedImageUrl = (imgUiState as UploadImageUiState.Success).imgUrl["imageUrl"]
             }
-
             is UploadImageUiState.Error -> {
                 Toast.makeText(
                     context,
@@ -113,7 +114,6 @@ fun PostEditScreen(
                     Toast.LENGTH_SHORT
                 ).show()
             }
-
             else -> Unit
         }
     }
@@ -254,6 +254,7 @@ fun PostEditScreen(
                                 content = content,
                                 imageUrl = finalImageUrl
                             )
+                            // 수정 버튼 누를 시 PostEditViewModel의 editPost() 호출
                             viewModel.editPost(postId, request)
                             onPostUpdated()
                         },

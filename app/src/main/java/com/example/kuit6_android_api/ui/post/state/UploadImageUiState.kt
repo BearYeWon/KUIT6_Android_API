@@ -1,10 +1,8 @@
 package com.example.kuit6_android_api.ui.post.state
 
-import com.example.kuit6_android_api.data.model.response.PostResponse
-
 sealed class UploadImageUiState {
-    data object Idle : UploadImageUiState()
-    data object Loading : UploadImageUiState()
+    data object Idle : UploadImageUiState() // 업로드가 아닌 일반 상태
+    data object Loading : UploadImageUiState() // 업로딩 상태
 
     data class Success(
         val imgUrl: Map<String, String>

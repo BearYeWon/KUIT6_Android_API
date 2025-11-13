@@ -15,12 +15,15 @@ import okhttp3.MultipartBody
 class PostEditViewModel (
     private val postRepository : PostRepository
 ) : ViewModel(){
+    // PostEditUiState
     private val _uiState = MutableStateFlow<PostEditUiState>(PostEditUiState.Loading) // 변경 가능 상태
     val uiState: StateFlow<PostEditUiState> = _uiState.asStateFlow()
 
+    // UploadImageUiSate
     private val _uploadImageUiState = MutableStateFlow<UploadImageUiState>(UploadImageUiState.Idle)
     val uploadImageUiState: StateFlow<UploadImageUiState> = _uploadImageUiState.asStateFlow()
 
+    // 게시글 수정 시 호출하는 함수 -> 성공 시 반환되는 response를 Sucess(pot)로 uiState에 반환
     fun editPost(
         postId: Long,
         request: PostCreateRequest
@@ -28,6 +31,7 @@ class PostEditViewModel (
         viewModelScope.launch {
             _uiState.value = PostEditUiState.Loading
 
+            // 레포지토리의 updatePost() 호출해서 response 반환 -> post 반환됨 -> UiState로 넘김
             postRepository.updatePost(postId, request)
                 .onSuccess { post ->
                     _uiState.value = PostEditUiState.Success(post)
@@ -40,6 +44,7 @@ class PostEditViewModel (
         }
     }
 
+    // 이미지 업로드할 때 호출하는 함수 (PostCreateViewModel과 동일)
     fun uploadImage(
         file: MultipartBody.Part
     ){
@@ -61,6 +66,7 @@ class PostEditViewModel (
         _uploadImageUiState.value = UploadImageUiState.Idle
     }
 
+    // 수정 후 popBackStack -> 디테일 스크린으로 넘어감 -> getPostDetail 호출 (PostDetailViewModel에서와 동일)
     fun getPostDetail(postId: Long) {
         viewModelScope.launch {
             _uiState.value = PostEditUiState.Loading

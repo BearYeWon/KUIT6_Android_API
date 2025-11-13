@@ -50,10 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.kuit6_android_api.data.model.request.PostCreateRequest
 import com.example.kuit6_android_api.ui.post.state.UploadImageUiState
@@ -70,6 +67,7 @@ fun PostCreateScreen(
     onPostCreated: () -> Unit,
     viewModel: PostCreateViewModel
 ) {
+    // create, upload image uiState 상태 구독
     val uiState by viewModel.uiState.collectAsState()
     val imgUiState by viewModel.uploadImageUiState.collectAsState()
     val context = LocalContext.current
@@ -80,6 +78,7 @@ fun PostCreateScreen(
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var uploadedImageUrl by remember { mutableStateOf<String?>(null) }
 
+    // 이미지 업로드
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -91,17 +90,18 @@ fun PostCreateScreen(
             if (file != null) {
                 val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
                 val body = MultipartBody.Part.createFormData("file", file.name, requestFile)
+                // file을 인자로해서 viewModel의 uploadImage 호출
                 viewModel.uploadImage(body)
             }
         }
     }
 
+    // imagUiState가 변할 때마다 성공 시 uploadedImageUrl 변경, 실패 시 토스트
     LaunchedEffect(imgUiState) {
         when (imgUiState) {
             is UploadImageUiState.Success -> {
                 uploadedImageUrl = (imgUiState as UploadImageUiState.Success).imgUrl["imageUrl"]
             }
-
             is UploadImageUiState.Error -> {
                 Toast
                     .makeText(
@@ -111,7 +111,6 @@ fun PostCreateScreen(
                     )
                     .show()
             }
-
             else -> Unit
         }
     }
@@ -294,6 +293,7 @@ fun PostCreateScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
+                // 작성하기 버튼 클릭 시 viewModel에서 createPost() 호출
                 onClick = {
                     val finalAuthor = author
                     val request = PostCreateRequest(

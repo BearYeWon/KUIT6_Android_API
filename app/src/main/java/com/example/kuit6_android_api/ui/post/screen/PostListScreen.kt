@@ -18,6 +18,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -34,6 +35,11 @@ fun PostListScreen(
     viewModel: PostListViewModel
 ) {
     val uiState by viewModel.postListUiState.collectAsState()
+
+    // side effect로 새로 고침
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
 
     Scaffold(
         topBar = {
@@ -53,6 +59,10 @@ fun PostListScreen(
             }
 
             is PostListUiState.Success -> {
+
+                //이전 Composition에서 캡처한 uiState를 다시 참조 -> Loading을 Success로 바꾸는 ClassCastException이 발생
+                // -> posts를 안정된 값으로 추출, LazyColumn 내부에는 posts만 전달
+                val posts = (uiState as PostListUiState.Success).posts
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -61,7 +71,7 @@ fun PostListScreen(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items((uiState as PostListUiState.Success).posts) { post ->
+                    items(posts) { post ->
                         PostItem(
                             post = post,
                             onClick = { onPostClick(post.id) }

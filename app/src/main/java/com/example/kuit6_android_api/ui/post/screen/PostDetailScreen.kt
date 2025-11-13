@@ -32,7 +32,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,9 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.kuit6_android_api.ui.post.state.DeletePostUiState
 import com.example.kuit6_android_api.ui.post.state.PostDetailUiState
@@ -60,16 +57,21 @@ fun PostDetailScreen(
     onEditClick: (Long) -> Unit = {},
     viewModel: PostDetailViewModel
 ) {
+    // PostDetailUiState, DeletePostUiState 상태 구독
     val uiState by viewModel.uiState.collectAsState()
     val deleteUiState by viewModel.deleteUiState.collectAsState()
+
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    // 새로 composition될 때마다 loadDetail 호출
     LaunchedEffect(Unit) {
         viewModel.loadDetail(postId)
     }
 
+    // 삭제 다이어로그: 삭제 버튼 누른 직후 deleteUiState 상태에 따른 처리
     LaunchedEffect(deleteUiState) {
         when (deleteUiState) {
+            // 성공 시 onNavigateBack()
             is DeletePostUiState.Success -> {
                 showDeleteDialog = false
                 onNavigateBack()
@@ -223,6 +225,7 @@ fun PostDetailScreen(
             title = { Text("게시글 삭제") },
             text = { Text("정말로 이 게시글을 삭제하시겠습니까?") },
             confirmButton = {
+                // 삭제 버튼 누를 시 PostDetailViewModel의 deletePost() 호출
                 TextButton(onClick = {
                     viewModel.deletePost(postId)
                 }) {
