@@ -13,3 +13,6 @@ object PostCreateRoute
 
 @Serializable
 data class PostEditRoute(val postId: Long)
+
+@Serializable
+object LoginRoute

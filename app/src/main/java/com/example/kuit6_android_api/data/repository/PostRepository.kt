@@ -3,7 +3,6 @@ package com.example.kuit6_android_api.data.repository
 import com.example.kuit6_android_api.data.model.request.PostCreateRequest
 import com.example.kuit6_android_api.data.model.response.PostResponse
 import okhttp3.MultipartBody
-import retrofit2.http.Body
 
 interface PostRepository{
     suspend fun getPosts(): Result<List<PostResponse>>
@@ -24,5 +23,4 @@ interface PostRepository{
     suspend fun uploadImage(
         file: MultipartBody.Part
     ): Result<Map<String, String>>
-
 }
