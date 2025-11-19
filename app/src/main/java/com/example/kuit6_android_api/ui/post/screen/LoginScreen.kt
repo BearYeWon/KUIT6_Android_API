@@ -41,6 +41,7 @@ fun LoginScreen(
         TokenValidationState.Failure -> "토큰 검증 실패"
     }
 
+    // 스크린 진입 시 자동 로그인 상태 불러오기 -> 자동 로그인 true면 자동으로 토큰 검증까지
     LaunchedEffect(Unit) {
         viewModel.initAutoLogin(context)
     }
@@ -105,7 +106,7 @@ fun LoginScreen(
             }
 
             Button(onClick = {
-                // 토큰 검증 api 연동
+                // 토큰 검증
                 scope.launch {
                     viewModel.validateToken(context)
                 }

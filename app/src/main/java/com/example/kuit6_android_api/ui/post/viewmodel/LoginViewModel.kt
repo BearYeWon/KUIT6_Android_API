@@ -35,46 +35,50 @@ class LoginViewModel(
         }
     }
 
+    // 회원가입 함수
     fun signup(context: Context) {
         viewModelScope.launch {
+            // 레포지토리에서 signup() 함수 호출
             loginRepository.signup(
                 id = uiState.value.id,
                 password = uiState.value.password
             ).onSuccess {
-                tokenRepository.saveToken(context, it.token)
+                tokenRepository.saveToken(context, it.token) // 회원가입 성공 시 토큰 정보 저장
             }
         }
     }
 
+    // 로그인 함수
     fun login(context: Context) {
         viewModelScope.launch {
+            // 레포지토리의 login() 함수 호출
             loginRepository.login(
                 id = uiState.value.id,
                 password = uiState.value.password
             ).onSuccess {
-                tokenRepository.saveToken(context, it.token)
+                tokenRepository.saveToken(context, it.token) // 성공 시 토큰 정보 저장
             }
         }
     }
 
+    // 토큰 가져오는 함수
     fun getToken(context: Context) {
         viewModelScope.launch {
-            val token = tokenRepository.getToken(context)
+            val token = tokenRepository.getToken(context) // 토큰 레포에서 getToken()으로 토큰 가져오기
             _uiState.update { it.copy(token = token ?: "") }
         }
     }
 
-    // 자동 로그인 초기화 로직 (LoginScreen의 LaunchedEffect에서 호출)
+    // 자동 로그인 초기화(LoginScreen의 LaunchedEffect에서 호출)
     fun initAutoLogin(context: Context) {
         viewModelScope.launch {
-            // 1. DataStore의 자동 로그인 값을 단일 값으로 가져옴
-            // Flow<Boolean> -> Boolean
-            val isAuto = tokenRepository.getAutoLogin(context)
+            // DataStore의 자동 로그인 값 가져옴
+            val isAuto = tokenRepository.getAutoLogin(context) // 자동 로그인 정보 가져오기
 
-            // 2. UI 상태에 반영
+            // UI 상태에 반영
             _uiState.update { it.copy(isAutoLogin = isAuto) }
 
-            // 3. 자동 로그인 설정이 True이면 검증 시도
+            // 자동 로그인 설정이 True이면 자동 토큰 검증 시도
             if (isAuto && _uiState.value.tokenValidationState == TokenValidationState.Initial) {
                 // isAuto가 true일 때만 자동 검증 시도
                 validateToken(context)
@@ -82,7 +86,7 @@ class LoginViewModel(
         }
     }
 
-    // 토큰 유효성 검증 함수 (버튼 클릭 및 자동 검증에 사용)
+    // 토큰 검증 (버튼 클릭 및 자동 검증에 사용)
     fun validateToken(context: Context) {
         viewModelScope.launch {
             // 검증 시작 상태 업데이트
@@ -93,21 +97,21 @@ class LoginViewModel(
                 )
             }
 
-            // 토큰 유효성 검증 API 호출
+            // 토큰 검증 API 호출
             val result = tokenRepository.validateToken(context)
 
             _uiState.update { it.copy(isLoading = false) }
 
             result.onSuccess { isValid ->
+                // 검증 성공
                 if (isValid) {
-                    // 검증 성공
                     _uiState.update {
                         it.copy(
                             tokenValidationState = TokenValidationState.Success
                         )
                     }
-                } else {
-                    tokenRepository.deleteToken(context)
+                } else { // 검증 실패
+                    tokenRepository.deleteToken(context) // 토큰 삭제
                     tokenRepository.saveAutoLogin(context, false) // 자동 로그인 해제
                     _uiState.update {
                         it.copy(
