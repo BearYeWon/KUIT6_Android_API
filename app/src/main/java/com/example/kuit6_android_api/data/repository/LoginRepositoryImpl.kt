@@ -4,8 +4,11 @@ import android.util.Log
 import com.example.kuit6_android_api.data.api.ApiService
 import com.example.kuit6_android_api.data.model.request.LoginRequest
 import com.example.kuit6_android_api.data.model.response.LoginResponse
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class LoginRepositoryImpl(
+@Singleton
+class LoginRepositoryImpl @Inject constructor(
     private val apiService: ApiService
 ): LoginRepository {
     override suspend fun signup(

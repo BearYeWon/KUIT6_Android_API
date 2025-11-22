@@ -17,10 +17,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.kuit6_android_api.ui.post.state.TokenValidationState
 import com.example.kuit6_android_api.ui.post.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
@@ -29,10 +28,9 @@ import kotlinx.coroutines.launch
 fun LoginScreen(
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit,
-    viewModel: LoginViewModel = viewModel()
-){
+    viewModel: LoginViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val buttonText = when (uiState.tokenValidationState) {
@@ -43,25 +41,25 @@ fun LoginScreen(
 
     // 스크린 진입 시 자동 로그인 상태 불러오기 -> 자동 로그인 true면 자동으로 토큰 검증까지
     LaunchedEffect(Unit) {
-        viewModel.initAutoLogin(context)
+        viewModel.initAutoLogin()
     }
 
-    Scaffold (Modifier.fillMaxSize()){ innerPadding ->
-        Column (
+    Scaffold(Modifier.fillMaxSize()) { innerPadding ->
+        Column(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             TextField(
                 value = uiState.id,
                 onValueChange = {
                     viewModel.onIdChanged(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = {Text("아이디")}
+                placeholder = { Text("아이디") }
             )
 
             TextField(
@@ -70,7 +68,7 @@ fun LoginScreen(
                     viewModel.onPasswordChanged(it)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = {Text("비밀번호")}
+                placeholder = { Text("비밀번호") }
             )
 
             Row(
@@ -80,27 +78,27 @@ fun LoginScreen(
                 Checkbox(
                     checked = uiState.isAutoLogin,
                     onCheckedChange = {
-                        viewModel.onAutoLoginChanged(context,it)
+                        viewModel.onAutoLoginChanged(it)
                     }
                 )
                 Text("자동 로그인")
             }
 
-            Row(){
+            Row() {
                 Button(onClick = {
-                    viewModel.login(context,)
+                    viewModel.login()
                 }) {
                     Text("로그인")
                 }
                 Button(onClick = {
-                    viewModel.signup(context,)
+                    viewModel.signup()
                 }) {
                     Text("회원가입")
                 }
             }
             Text("토큰 : ${uiState.token}")
             Button(onClick = {
-                viewModel.getToken(context,)
+                viewModel.getToken()
             }) {
                 Text("토큰 조회")
             }
@@ -108,7 +106,7 @@ fun LoginScreen(
             Button(onClick = {
                 // 토큰 검증
                 scope.launch {
-                    viewModel.validateToken(context)
+                    viewModel.validateToken()
                 }
             }) {
                 Text(buttonText)

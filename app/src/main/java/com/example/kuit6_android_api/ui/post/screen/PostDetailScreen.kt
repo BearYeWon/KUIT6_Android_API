@@ -43,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.kuit6_android_api.ui.post.state.DeletePostUiState
 import com.example.kuit6_android_api.ui.post.state.PostDetailUiState
@@ -55,7 +56,7 @@ fun PostDetailScreen(
     postId: Long,
     onNavigateBack: () -> Unit,
     onEditClick: (Long) -> Unit = {},
-    viewModel: PostDetailViewModel
+    viewModel: PostDetailViewModel = hiltViewModel()
 ) {
     // PostDetailUiState, DeletePostUiState 상태 구독
     val uiState by viewModel.uiState.collectAsState()

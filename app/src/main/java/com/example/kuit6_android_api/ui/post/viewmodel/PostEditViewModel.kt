@@ -6,13 +6,16 @@ import com.example.kuit6_android_api.data.model.request.PostCreateRequest
 import com.example.kuit6_android_api.data.repository.PostRepository
 import com.example.kuit6_android_api.ui.post.state.PostEditUiState
 import com.example.kuit6_android_api.ui.post.state.UploadImageUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
+import javax.inject.Inject
 
-class PostEditViewModel (
+@HiltViewModel
+class PostEditViewModel @Inject constructor (
     private val postRepository : PostRepository
 ) : ViewModel(){
     // PostEditUiState

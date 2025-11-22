@@ -5,12 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.kuit6_android_api.data.repository.PostRepository
 import com.example.kuit6_android_api.ui.post.state.DeletePostUiState
 import com.example.kuit6_android_api.ui.post.state.PostDetailUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PostDetailViewModel (
+@HiltViewModel
+class PostDetailViewModel @Inject constructor(
     private val postRepository : PostRepository
 ) : ViewModel(){
     // PostDetailUiState
